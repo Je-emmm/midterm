@@ -1,0 +1,380 @@
+#include <iostream>
+#include <iomanip>
+#include <vector>
+#include <fstream>
+#include <string>
+#include <windows.h>
+#include <conio.h>
+
+using namespace std;
+
+struct User {
+    string username, password, firstname, lastname, contactnumber, emailaddress;
+    bool isAdmin;
+};
+
+struct Book {
+    string bookname, author, isbn, publicationDate, genre, numPages, rating, price, rentprice;
+    int quantity;
+};
+
+class Bookstore {
+private:
+    User currentUser ;
+    vector<Book> books;
+
+public:
+    User getCurrentUser () const {
+        return currentUser ;
+    }
+
+    void cl() {
+        system("cls");
+    }
+
+   void registeraccount() {
+    char ch;
+    User newUser ;
+
+    cout << "Enter your Username :: ";
+    cin >> newUser .username;
+    if (newUser .username == "admin" || newUser .username == "Admin" || newUser .username == "ADMIN") {
+        cout << "Invalid username" << endl;
+        return;
+    }
+
+    while (true) {
+        cout << "Enter your Password :: ";
+        newUser .password.clear();
+        int i = 0;
+        while (true) {
+            ch = getch();
+            if (ch == 13) {
+                break;
+            } else if (ch == 8) {
+                if (i > 0) {
+                    i--;
+                    newUser .password.pop_back();
+                    cout << "\b \b";
+                }
+            } else {
+                newUser .password += ch;
+                cout << "*";
+                i++;
+            }
+        }
+
+        if (newUser .password.length() < 8) {
+            cout << "\nPassword requires 8 characters long!" << endl;
+            Sleep(1000);
+        } else {
+            break;
+        }
+    }
+
+    cout << "\nEnter your FirstName :: ";
+    cin >> newUser .firstname;
+    cout << "Enter your LastName :: ";
+    cin >> newUser .lastname;
+    cout << "Enter your ContactNumber :: ";
+    cin >> newUser .contactnumber;
+    cout << "Enter your Email :: ";
+    cin >> newUser .emailaddress;
+
+    ofstream outFile("bookstoreaccounts.txt", ios::app);
+    if (outFile.is_open()) {
+        outFile << newUser .username << ","
+                << newUser .password << ","
+                << newUser .firstname << ","
+                << newUser .lastname << ","
+                << newUser .contactnumber << ","
+                << newUser .emailaddress << endl;
+        outFile.close();
+        cl();
+        cout << "\n\n\n\n\n\n\n\t\t\t\033[30;101m||==========================================================================||" << endl;
+        cout << "\t\t\t||\033[107m                                                                          \033[101m||" << endl;
+        cout << "\t\t\t||\033[107m                          REGISTRATION COMPLETE!.                         \033[101m||" << endl;
+        cout << "\t\t\t||\033[107m                                                                          \033[101m||" << endl;
+        cout << "\t\t\t||==========================================================================||\033[0m" << endl;
+        system("pause");
+        return;
+    } else {
+        cout << "Error: Unable to open file!\n";
+    }
+}
+
+    bool login() {
+    string username, password;
+    char ch;
+
+    cout << "Enter your Username: ";
+    cin >> username;
+
+    for (int attempt = 0; attempt < 3; attempt++) {
+        cout << "Enter your Password: ";
+        password.clear();
+        int i = 0;
+        while (true) {
+            ch = getch();
+            if (ch == 13) {
+                break;
+            } else if (ch == 8) {
+                if (i > 0) {
+                    i--;
+                    password.pop_back();
+                    cout << "\b \b";
+                }
+            } else {
+                password += ch;
+                cout << "*";
+                i++;
+            }
+        }
+        cout << endl;
+
+
+        if (username == "admin" && password == "adminpass") {
+            currentUser .username = username;
+            currentUser .password = password;
+            currentUser .firstname = "Admin";
+            currentUser .lastname = "Administrator";
+            currentUser .isAdmin = true;
+            return true;
+        }
+
+
+        ifstream inFile("bookstoreaccounts.txt");
+        if (!inFile.is_open()) {
+            cout << "Error: Unable to open file!\n";
+            return false;
+        }
+
+        string line;
+        while (getline(inFile, line)) {
+            size_t pos = 0;
+            string data[6];
+            int i = 0;
+            while ((pos = line.find(",")) != string::npos && i < 5) {
+                data[i] = line.substr(0, pos);
+                line.erase(0, pos + 1);
+                i++;
+            }
+            data[i] = line;
+
+            if (data[0] == username && data[1] == password) {
+                currentUser .username = data[0];
+                currentUser .password = data[1];
+                currentUser .firstname = data[2];
+                currentUser .lastname = data[3];
+                currentUser .contactnumber = data[4];
+                currentUser .emailaddress = data[5];
+                currentUser .isAdmin = false;
+                inFile.close();
+                return true;
+            }
+        }
+        inFile.close();
+
+        cout << "\nInvalid username or password! Attempts left: " << (2 - attempt) << endl;
+    }
+
+    cout << "Too many failed attempts. Exiting login." << endl;
+    return false;
+}
+
+    void addbooks() {
+        Book newBook;
+        cin.ignore();
+        cout << "Enter book name: ";
+        getline(cin, newBook .bookname);
+        cout << "Enter book author: ";
+        cin >> newBook.author;
+        cout << "Enter book ISBN: ";
+        cin >> newBook.isbn;
+        cout << "Enter book publication date: ";
+        cin >> newBook.publicationDate;
+        cout << "Enter book genre: ";
+        cin >> newBook.genre;
+        cout << "Enter book number of pages: ";
+        cin >> newBook.numPages;
+        cout << "Enter book rating: ";
+        cin >> newBook.rating;
+        cout << "Enter book price: ";
+        cin >> newBook.price;
+        cout << "Enter book rentprice";
+        cin >> newBook.rentprice;
+        cout << "Enter book quantities";
+        cin >> newBook.quantity;
+
+        books.push_back(newBook);
+
+        ofstream outFile("bookstorebooks.txt", ios::app);
+        if (outFile.is_open()) {
+            outFile << newBook.bookname << ","
+                    << newBook.author << ","
+                    << newBook.isbn << ","
+                    << newBook.publicationDate << ","
+                    << newBook.genre << ","
+                    << newBook.numPages << ","
+                    << newBook.rating << ","
+                    << newBook.price << ","
+                    << newBook.rentprice << ","
+                    << newBook.quantity <<endl;
+            outFile.close();
+            cl();
+            cout << "\n\n\n\n\n\n\n\t\t\t\033[30;101m||==========================================================================||" << endl;
+            cout << "\t\t\t||\033[107m                                                                          \033[101m||" << endl;
+            cout << "\t\t\t||\033[107m                                Books Added!                              \033[101m||" << endl;
+            cout << "\t\t\t||\033[107m                                                                          \033[101m||" << endl;
+            cout << "\t\t\t||==========================================================================||\033[0m" << endl;
+            system("pause");
+            return;
+        } else {
+            cout << "Error: Unable to open file!\n";
+        }
+    }
+
+    void viewbooks() {
+    ifstream inFile("bookstorebooks.txt");
+    if (!inFile.is_open()) {
+        cout << "Error: Unable to open file!" << endl;
+        return;
+    }
+
+    books.clear();
+
+    string line;
+    while (getline(inFile, line)) {
+        Book book;
+        size_t pos = 0;
+        int i = 0;
+
+        while ((pos = line.find(",")) != string::npos && i < 7) {
+            switch (i) {
+                case 0: book.bookname = line.substr(0, pos); break;
+                case 1: book.author = line.substr(0, pos); break;
+                case 2: book.isbn = line.substr(0, pos); break;
+                case 3: book.publicationDate = line.substr(0, pos); break;
+                case 4: book.genre = line.substr(0, pos); break;
+                case 5: book.numPages = line.substr(0, pos); break;
+                case 6: book.rating = line.substr(0, pos); break;
+            }
+            line.erase(0, pos + 1);
+            i++;
+        }
+        book.price = line;
+
+        books.push_back(book);
+    }
+    inFile.close();
+
+    if (books.empty()) {
+        cout << "No books available." << endl;
+        return;
+    }
+
+    cout << "Available Books:" << endl;
+    for (const auto& book : books) {
+        cout << "Name: " << book.bookname
+             << "\nAuthor: " << book.author
+             << "\nISBN: " << book.isbn
+             << "\nPrice: " << book.price
+             << "\nRent Price: " <<book.rentprice << endl;
+    }
+}
+
+    void buyBook() {
+        string bookName;
+        cout << "Enter the name of the book you want to buy: ";
+        cin >> bookName;
+
+        for (const auto& book : books) {
+            if (book.bookname == bookName) {
+                cout << "You have successfully bought the book: " << book.bookname << " for " << book.price << endl;
+                return;
+            }
+        }
+        cout << "Book not found." << endl;
+    }
+
+    void rentBook() {
+        string bookName;
+        cout << "Enter the name of the book you want to rent: ";
+        cin >> bookName;
+
+        for (const auto& book : books) {
+            if (book.bookname == bookName) {
+                cout << "You have successfully rented the book: " << book.bookname << " for " << book.rentprice << endl;
+                return;
+            }
+        }
+        cout << "Book not found." << endl;
+    }
+
+    void userMenu() {
+        while (true) {
+            int choice;
+            cout << "1. Buy Book" << endl;
+            cout << "2. Rent Book" << endl;
+            cout << "3. View Books" << endl;
+            cout << "4. Logout" << endl;
+            cin >> choice;
+
+            if (choice == 1) {
+                buyBook();
+            } else if (choice == 2) {
+                rentBook();
+            } else if (choice == 3) {
+                viewbooks();
+            } else if (choice == 4) {
+                break;
+            } else {
+                cout << "Invalid choice" << endl;
+            }
+        }
+    }
+};
+
+int main() {
+    Bookstore store;
+    while (true) {
+        int choice;
+        cout << "Choose!" << endl;
+        cout << "1. Register" << endl;
+        cout << "2. Login" << endl;
+        cout << "3. Exit" << endl;
+        cin >> choice;
+
+        if (choice == 1) {
+            store.registeraccount();
+        } else if (choice == 2) {
+            if (store.login()) {
+                if (store.getCurrentUser ().isAdmin) {
+                    while (true) {
+                        int subchoice;
+                        cout << "1. Add Books" << endl;
+                        cout << "2. View Books" << endl;
+                        cout << "3. Logout" << endl;
+                        cin >> subchoice;
+                        if (subchoice == 1) {
+                            store.addbooks();
+                        } else if (subchoice == 2) {
+                            store.viewbooks();
+                        } else if (subchoice == 3) {
+                            break;
+                        } else {
+                            cout << "Invalid choice" << endl;
+                        }
+                    }
+                } else {
+                    store.userMenu();
+                }
+            }
+        } else if (choice == 3) {
+            break;
+        } else {
+            cout << "Invalid choice" << endl;
+        }
+    }
+    return 0;
+}
